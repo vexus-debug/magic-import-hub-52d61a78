@@ -2487,7 +2487,7 @@ serve(async (req) => {
 
         result = await response.json();
       } catch (e) {
-        console.error("Cerebras API call failed:", e);
+        console.error("NVIDIA API call failed:", e);
         return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "AI service unavailable" }), {
           status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
