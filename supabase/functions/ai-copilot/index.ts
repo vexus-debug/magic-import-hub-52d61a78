@@ -2463,6 +2463,7 @@ serve(async (req) => {
 
       let result: any;
       try {
+        console.log(`Calling NVIDIA model=${NVIDIA_MODEL} messages=${openaiMessages.length} tools=${openaiTools.length}`);
         const response = await fetch(NVIDIA_URL, {
           method: "POST",
           headers: {
@@ -2470,7 +2471,9 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(body),
+          signal: AbortSignal.timeout(120_000),
         });
+        console.log(`NVIDIA responded status=${response.status}`);
 
         if (!response.ok) {
           const errText = await response.text();
