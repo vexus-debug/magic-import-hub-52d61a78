@@ -2405,9 +2405,9 @@ serve(async (req) => {
   try {
     const { messages, context, orgId } = await req.json();
 
-    const CEREBRAS_API_KEY = Deno.env.get("CEREBRAS_API_KEY");
-    if (!CEREBRAS_API_KEY) {
-      return new Response(JSON.stringify({ error: "CEREBRAS_API_KEY is not configured." }), {
+    const NVIDIA_API_KEY = Deno.env.get("NVIDIA_API_KEY");
+    if (!NVIDIA_API_KEY) {
+      return new Response(JSON.stringify({ error: "NVIDIA_API_KEY is not configured." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -2446,12 +2446,9 @@ serve(async (req) => {
       }),
     ];
 
-    const CEREBRAS_URL = "https://api.cerebras.ai/v1/chat/completions";
-    // Cerebras serves image input on qwen-3.8-27b; text + tool calling runs on gpt-oss-120b.
-    const hasImages = openaiMessages.some(
-      (m: any) => Array.isArray(m.content) && m.content.some((c: any) => c?.type === "image_url"),
-    );
-    const CEREBRAS_MODEL = hasImages ? "qwen-3.8-27b" : "gpt-oss-120b";
+    const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
+    // deepseek-v4.1-flash handles both text + tool calling and image input.
+    const NVIDIA_MODEL = "deepseek-ai/deepseek-v4.1-flash";
 
     let rounds = 8;
 
