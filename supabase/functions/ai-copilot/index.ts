@@ -2447,8 +2447,8 @@ serve(async (req) => {
     ];
 
     const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    // deepseek-v4.1-flash handles both text + tool calling and image input.
-    const NVIDIA_MODEL = "deepseek-ai/deepseek-v4.1-flash";
+    // Model chosen by user.
+    const NVIDIA_MODEL = "meta/muse-glimmer-30b";
 
     let rounds = 8;
 
@@ -2457,7 +2457,8 @@ serve(async (req) => {
         model: NVIDIA_MODEL,
         messages: openaiMessages,
         tools: openaiTools,
-        temperature: 0.7,
+        temperature: 1,
+        top_p: 0.95,
         max_tokens: 8192,
       };
 
