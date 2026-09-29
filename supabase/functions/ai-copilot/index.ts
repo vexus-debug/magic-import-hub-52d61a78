@@ -2454,7 +2454,7 @@ serve(async (req) => {
 
     while (rounds-- > 0) {
       const body = {
-        model: CEREBRAS_MODEL,
+        model: NVIDIA_MODEL,
         messages: openaiMessages,
         tools: openaiTools,
         temperature: 0.7,
@@ -2463,10 +2463,10 @@ serve(async (req) => {
 
       let result: any;
       try {
-        const response = await fetch(CEREBRAS_URL, {
+        const response = await fetch(NVIDIA_URL, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${CEREBRAS_API_KEY}`,
+            Authorization: `Bearer ${NVIDIA_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(body),
