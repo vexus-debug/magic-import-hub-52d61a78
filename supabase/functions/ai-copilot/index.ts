@@ -2405,9 +2405,9 @@ serve(async (req) => {
   try {
     const { messages, context, orgId } = await req.json();
 
-    const CEREBRAS_API_KEY = Deno.env.get("CEREBRAS_API_KEY");
-    if (!CEREBRAS_API_KEY) {
-      return new Response(JSON.stringify({ error: "CEREBRAS_API_KEY is not configured." }), {
+    const NVIDIA_API_KEY = Deno.env.get("NVIDIA_API_KEY");
+    if (!NVIDIA_API_KEY) {
+      return new Response(JSON.stringify({ error: "NVIDIA_API_KEY is not configured." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -2446,18 +2446,15 @@ serve(async (req) => {
       }),
     ];
 
-    const CEREBRAS_URL = "https://api.cerebras.ai/v1/chat/completions";
-    // Cerebras serves image input on qwen-3.8-27b; text + tool calling runs on gpt-oss-120b.
-    const hasImages = openaiMessages.some(
-      (m: any) => Array.isArray(m.content) && m.content.some((c: any) => c?.type === "image_url"),
-    );
-    const CEREBRAS_MODEL = hasImages ? "qwen-3.8-27b" : "gpt-oss-120b";
+    const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
+    // deepseek-v4.1-flash handles both text + tool calling and image input.
+    const NVIDIA_MODEL = "deepseek-ai/deepseek-v4.1-flash";
 
     let rounds = 8;
 
     while (rounds-- > 0) {
       const body = {
-        model: CEREBRAS_MODEL,
+        model: NVIDIA_MODEL,
         messages: openaiMessages,
         tools: openaiTools,
         temperature: 0.7,
@@ -2466,31 +2463,34 @@ serve(async (req) => {
 
       let result: any;
       try {
-        const response = await fetch(CEREBRAS_URL, {
+        console.log(`Calling NVIDIA model=${NVIDIA_MODEL} messages=${openaiMessages.length} tools=${openaiTools.length}`);
+        const response = await fetch(NVIDIA_URL, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${CEREBRAS_API_KEY}`,
+            Authorization: `Bearer ${NVIDIA_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(body),
+          signal: AbortSignal.timeout(120_000),
         });
+        console.log(`NVIDIA responded status=${response.status}`);
 
         if (!response.ok) {
           const errText = await response.text();
-          console.error(`Cerebras API error [${response.status}]: ${errText}`);
+          console.error(`NVIDIA API error [${response.status}]: ${errText}`);
           if (response.status === 429) {
-            return new Response(JSON.stringify({ error: "Rate limited by Cerebras. Please try again shortly." }), {
+            return new Response(JSON.stringify({ error: "Rate limited by the AI provider. Please try again shortly." }), {
               status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
-          return new Response(JSON.stringify({ error: `Cerebras API error: ${response.status} ${errText}` }), {
+          return new Response(JSON.stringify({ error: `AI provider error: ${response.status} ${errText}` }), {
             status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
         result = await response.json();
       } catch (e) {
-        console.error("Cerebras API call failed:", e);
+        console.error("NVIDIA API call failed:", e);
         return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "AI service unavailable" }), {
           status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
