@@ -2474,13 +2474,13 @@ serve(async (req) => {
 
         if (!response.ok) {
           const errText = await response.text();
-          console.error(`Cerebras API error [${response.status}]: ${errText}`);
+          console.error(`NVIDIA API error [${response.status}]: ${errText}`);
           if (response.status === 429) {
-            return new Response(JSON.stringify({ error: "Rate limited by Cerebras. Please try again shortly." }), {
+            return new Response(JSON.stringify({ error: "Rate limited by the AI provider. Please try again shortly." }), {
               status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
-          return new Response(JSON.stringify({ error: `Cerebras API error: ${response.status} ${errText}` }), {
+          return new Response(JSON.stringify({ error: `AI provider error: ${response.status} ${errText}` }), {
             status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
